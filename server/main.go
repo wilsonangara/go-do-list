@@ -4,13 +4,13 @@ import (
 	"context"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/kenshaw/envcfg"
-	"github.com/twitchtv/twirp"
-	"gopkg.in/DataDog/dd-trace-go.v1/contrib/twitchtv/twirp"
 )
 
 const server = "backend"
@@ -29,31 +29,44 @@ func main() {
 	log.Printf("starting %s server", server)
 
 	addr := net.JoinHostPort("", config.GetString("server.port"))
-	l, err := net.Listen("tcp", addr)
-	if err != nil {
-		log.Fatal(err)
+	srv := &http.Server{
+		Addr:         addr,
+		Handler:      registerHandlers(),
+		ReadTimeout:  config.GetDuration("server.readTimeout"),
+		IdleTimeout:  config.GetDuration("server.idleTimeout"),
+		WriteTimeout: config.GetDuration("server.writeTimeout"),
 	}
 
+	idleConnsClosed := make(chan struct{})
 	go func() {
-		log.Printf("server listening to %v", l.Addr())
+		sigint := make(chan os.Signal, 1)
+		signal.Notify(sigint, os.Interrupt)
+		<-sigint
+
+		ctx, cancel := context.WithTimeout(
+			context.Background(),
+			5*time.Second,
+		)
+		defer cancel()
+
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Fatalf("server shutdown: %v", err)
+		}
+		log.Print("server shutdown")
+		close(idleConnsClosed)
 	}()
 
-	// catch interruption signals
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt)
-
-	<-ch
-
-	// graceful shutdown
-	shutDownCtx, cancel := context.WithTimeout(
-		context.Background(),
-		5*time.Second,
-	)
-	defer cancel()
+	log.Printf("starting %s on port: %s", server, addr)
+	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+		log.Fatalf("server ListenAndServe: %v", err)
+	}
+	<-idleConnsClosed
 
 	log.Print("server exited gracefully")
 }
 
-func setupTwirpServer(*twirp.WrapServer) {
+func registerHandlers() http.Handler {
+	router := mux.NewRouter()
 
+	return router
 }
