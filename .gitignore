@@ -1,4 +1,5 @@
 .envrc
 go.work
+go.work.sum
 server/env/config
 server/server

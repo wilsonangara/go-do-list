@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -28,6 +29,30 @@ func TestNewStorage(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewStorage(_) expected nil error, got = %v", err)
 		}
+	})
+}
+
+func TestNewTestStorage(t *testing.T) {
+	t.Parallel()
+
+	if dbString == "" {
+		t.Skip("database connection not set, skipping.")
+	}
+
+	t.Run("Success_WithoutMigration", func(t *testing.T) {
+		t.Parallel()
+
+		_, teardown := NewTestStorage(dbString, "")
+		t.Cleanup(teardown)
+	})
+
+	t.Run("Success_WithMigration", func(t *testing.T) {
+		t.Parallel()
+
+		var migrationDir = filepath.Join("..", "migrations")
+
+		_, teardown := NewTestStorage(dbString, migrationDir)
+		t.Cleanup(teardown)
 	})
 }
 
