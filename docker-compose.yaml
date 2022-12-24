@@ -1,0 +1,18 @@
+version: "3.9"
+
+volumes:
+  postgresql:
+
+services:
+  postgres:
+    container_name: go-do-list-postgres
+    image: postgres:15.1
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresql:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=postgres
+    restart: unless-stopped

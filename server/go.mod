@@ -5,6 +5,8 @@ go 1.19
 require (
 	github.com/gorilla/mux v1.8.0
 	github.com/kenshaw/envcfg v0.5.0
+	github.com/lib/pq v1.10.7
+	github.com/pressly/goose v2.7.0+incompatible
 )
 
 require (
@@ -20,6 +22,7 @@ require (
 	github.com/kenshaw/jwt v0.2.0 // indirect
 	github.com/kenshaw/pemutil v0.1.0 // indirect
 	github.com/miekg/dns v1.1.35 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/yookoala/realpath v1.0.0 // indirect
 	go.opencensus.io v0.22.5 // indirect
 	golang.org/x/crypto v0.0.0-20201203163018-be400aefbc4c // indirect

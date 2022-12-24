@@ -1,2 +1,4 @@
 .envrc
 go.work
+server/env/config
+server/server
